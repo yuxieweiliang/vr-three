@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <script src="../js/three.js"></script>
+</head>
+<body>
+<script type="module">
+  import '../js/loaders/OBJLoader.js';
+  import '../js/loaders/MTLLoader.js';
+  import { RectAreaLightUniformsLib } from '../jsm/lights/RectAreaLightUniformsLib.js';
+  import { PointerLockControls } from '../jsm/controls/PointerLockControls.js';
+  import { OrbitControls } from '../jsm/controls/OrbitControls.js';
+  import addShape from './utils/addShape.js'
+  import createBox from './utils/createBox.js'
+  import roundedRect from './utils/roundedRect.js'
+  import Spectacle from './utils/spectacle.js'
+
+  const sp = new Spectacle({
+    width: window.innerWidth,
+    height: window.innerHeight
+  })
+
+  // 初始化 桌面材质
+  sp.load(function (scene) {
+    const loader = new THREE.TextureLoader();
+    const texture = loader.load( "../textures/tree.jpg" );
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set( 0.01, 0.01 );
+    texture.rotation = 90
+    this.texture = texture
+  })
+
+  // 初始化 相机
+  sp.create(function (scene) {
+    const perspective = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
+    perspective.position.set( 0, 150, 500 );
+    scene.add( perspective );
+    this.cameras.perspective = perspective
+    controls = new PointerLockControls( camera );
+    controls.lock();
+    console.log('light2222', this);
+  })
+
+  // 初始化灯光
+  sp.create(function (scene) {
+    const point = new THREE.PointLight( 0xffffff, 0.8 );
+    this.cameras.perspective.add( point );
+    const direction = new THREE.DirectionalLight(0xffffff);
+    direction.position.set(0, 1, 1).normalize();
+    scene.add(direction);
+    this.lights.point = point
+    this.lights.direction = direction
+    console.log('light2222', this);
+  })
+
+  // 初始化地面
+  sp.create(function (scene) {
+    var plane = new THREE.Mesh( new THREE.PlaneBufferGeometry(10000, 10000), new THREE.MeshBasicMaterial( { side: THREE.DoubleSide, color: '#b8b8b8' } ) );
+    plane.rotation.x = - Math.PI / 2;
+    plane.position.y = -308;
+    scene.add(plane);
+  })
+
+  // 初始化屋顶
+  sp.create(function (scene) {
+    var plane = new THREE.Mesh( new THREE.PlaneBufferGeometry(300, 10000), new THREE.MeshBasicMaterial( { side: THREE.DoubleSide, color: '#b8b8b8' } ) );
+    plane.rotation.x = - Math.PI / 2;
+    plane.position.x = -500;
+    plane.position.y = 400;
+    scene.add(plane);
+  })
+
+  // 初始化屋顶
+  sp.create(function (scene) {
+    var plane = new THREE.Mesh( new THREE.PlaneBufferGeometry(300, 10000), new THREE.MeshBasicMaterial( { side: THREE.DoubleSide, color: '#b8b8b8' } ) );
+    plane.rotation.x = - Math.PI / 2;
+    plane.rotation.y = - Math.PI / 2;
+    plane.position.x = -350;
+    plane.position.y = 550;
+    scene.add(plane);
+  })
+
+
+  // 初始化屋顶
+  sp.create(function (scene) {
+    var plane = new THREE.Mesh( new THREE.PlaneBufferGeometry(300, 10000), new THREE.MeshBasicMaterial( { side: THREE.DoubleSide, color: '#b8b8b8' } ) );
+    plane.rotation.x = - Math.PI / 2;
+    plane.rotation.y = - Math.PI / 2;
+    plane.position.x = -350;
+    plane.position.y = 550;
+    scene.add(plane);
+  })
+
+  // 初始化 物品
+  sp.create(function (scene) {
+    const _this = this;
+    const manager = new THREE.LoadingManager( loadModel );
+    const textureLoader = new THREE.TextureLoader( manager );
+    const tableLegMaterial = new THREE.MeshPhongMaterial({ color: '#eee' });
+    const tableFootGasketMaterial = new THREE.MeshPhongMaterial({ color: '#333' });
+    const isolationBoardMaterial = new THREE.MeshStandardMaterial({ color: '#bebebe', metalness: 0.9, roughness: .6, reflectivity: 0.9 });
+    const material = new THREE.MeshLambertMaterial({ color: '#eee' });
+    var texture = textureLoader.load( "../textures/tree.jpg" );
+    function loadModel() {
+      _this.object1.traverse( function ( child ) {
+        if ( child.isMesh) {
+          if(child.name === 'desktop') {
+            child.material.map = texture;
+          } else if ( child.name === 'table-leg' ) {
+            child.material = tableLegMaterial;
+          } else if ( child.name === 'table-foot-gasket' ) {
+            child.material = tableFootGasketMaterial;
+          } else if ( child.name === 'isolation-board' || child.name.indexOf('slot') > -1) {
+            child.material = isolationBoardMaterial;
+          } else {
+            // child.material = material
+          }
+        }
+      } );
+      _this.object1.position.y = - 95;
+      scene.add( _this.object1 );
+    }
+
+    function onError() {}
+    function onProgress( xhr ) {
+
+      if ( xhr.lengthComputable ) {
+
+        var percentComplete = xhr.loaded / xhr.total * 100;
+        console.log( 'model ' + Math.round( percentComplete, 2 ) + '% downloaded' );
+      }
+    }
+    manager.onProgress = function ( item, loaded, total ) {
+      console.log( item, loaded, total );
+    };
+    var loader = new THREE.OBJLoader( manager );
+    var mTlLoader = new THREE.MTLLoader();
+
+    mTlLoader.load('../models/desk.mtl', function(materials) {
+      loader.setMaterials(materials);
+      loader.load( '../models/desk.obj',  ( obj ) => {
+        _this.object1 = obj;
+      }, onProgress, onError );
+    })
+  })
+
+  // 初始化 物品
+  sp.create(function (scene) {
+    const _this = this;
+    const manager = new THREE.LoadingManager( loadModel );
+    const textureLoader = new THREE.TextureLoader( manager );
+    var texture = textureLoader.load( "../textures/tree.jpg" );
+    function loadModel() {
+      _this.object2.traverse( function ( child ) {
+        if ( child.isMesh) {
+          child.material.map = texture;
+        }
+      } );
+      _this.object2.position.y = - 298;
+      _this.object2.position.x = - 395;
+      _this.object2.rotation.y = Math.PI / 2;
+      _this.object2.scale.set(2,2,2);
+      scene.add( _this.object2 );
+    }
+
+    function onError() {}
+    function onProgress( xhr ) {
+
+      if ( xhr.lengthComputable ) {
+
+        var percentComplete = xhr.loaded / xhr.total * 100;
+        console.log( 'model ' + Math.round( percentComplete, 2 ) + '% downloaded' );
+      }
+    }
+    manager.onProgress = function ( item, loaded, total ) {
+      console.log( item, loaded, total );
+    };
+    var loader = new THREE.OBJLoader( manager );
+    loader.load( '../models/墙柜.obj',  ( obj ) => {
+      _this.object2 = obj;
+    }, onProgress, onError );
+  })
+
+  // 初始化 物品
+  sp.create(function (scene) {
+    const _this = this;
+    const manager = new THREE.LoadingManager( loadModel );
+    const textureLoader = new THREE.TextureLoader( manager );
+    var texture = textureLoader.load( "../textures/tree.jpg" );
+    var group = new THREE.Group();
+
+    function loadModel() {
+      group.materialLibraries = _this.object3.materialLibraries
+      _this.object3.traverse( function ( child ) {
+        if ( child.isMesh) {
+          child.material.map = texture;
+          group.add(child.clone())
+        }
+      } );
+      _this.object3.position.y = - 308;
+      _this.object3.position.x = - 395;
+      _this.object3.position.z = - 515;
+      _this.object3.rotation.y = Math.PI / 2;
+      _this.object3.scale.set(2,2,2);
+      scene.add( _this.object3 );
+      group.position.y = - 308;
+      group.position.x = - 395;
+      group.position.z = 505;
+      group.rotation.y = Math.PI / 2;
+      group.scale.set(2,2,2);
+
+      scene.add( group );
+    }
+
+    function onError() {}
+    function onProgress( xhr ) {
+
+      if ( xhr.lengthComputable ) {
+
+        var percentComplete = xhr.loaded / xhr.total * 100;
+        console.log( 'model ' + Math.round( percentComplete, 2 ) + '% downloaded' );
+      }
+    }
+    manager.onProgress = function ( item, loaded, total ) {
+      console.log( item, loaded, total );
+    };
+    var loader = new THREE.OBJLoader( manager );
+    loader.load( '../models/墙柜2.obj',  ( obj ) => {
+      _this.object3 = obj;
+    }, onProgress, onError );
+  })
+
+  // 初始化 物品
+  /*sp.create(function (scene) {
+
+    // 加载环境盒子
+    const path = "../textures/pisa/";
+    const format = '.png';
+    const urls = [
+      path + 'px' + format, path + 'nx' + format,
+      path + 'py' + format, path + 'ny' + format,
+      path + 'pz' + format, path + 'nz' + format
+    ];
+
+    const textureCube = THREE.ImageUtils.loadTextureCube( urls );
+
+    // Skybox
+    const shader = THREE.ShaderLib[ "cube" ];
+    shader.uniforms[ "tCube" ].value = textureCube;
+
+    // 贴图
+    const material2 = new THREE.ShaderMaterial( {
+          fragmentShader: shader.fragmentShader,
+          vertexShader: shader.vertexShader,
+          uniforms: shader.uniforms,
+          depthWrite: false,
+          side: THREE.BackSide
+        } ),
+
+        // 创建网格  （ 盒子， 贴图 ）
+        mesh2 = new THREE.Mesh( new THREE.BoxGeometry( 3000, 3000, 3000 ), material2 );
+    scene.add( mesh2 );
+  })*/
+
+  // 初始化 物品
+  sp.create(function (scene) {
+    RectAreaLightUniformsLib.init();
+    const rectLight = new THREE.RectAreaLight( 0xffffff, 10, 200, 10 );
+    rectLight.position.set( 50, 250, 0 );
+    rectLight.rotation.x = - Math.PI / 2;
+    scene.add( rectLight );
+    var rectLightMesh = new THREE.Mesh( new THREE.PlaneBufferGeometry(), new THREE.MeshBasicMaterial( { side: THREE.DoubleSide } ) );
+    rectLightMesh.scale.x = rectLight.width;
+    rectLightMesh.scale.y = rectLight.height;
+    rectLight.add( rectLightMesh );
+
+    var rectLightMeshBack = new THREE.Mesh( new THREE.PlaneBufferGeometry(), new THREE.MeshBasicMaterial( { color: 0x080808 } ) );
+    rectLightMesh.add( rectLightMeshBack );
+  })
+
+  // 初始化 物品
+  sp.create(function (scene) {
+    const { width, height } = this.screen
+    this.render = function () {
+      // console.log('light2222', this);
+      this.renderer.render(scene, this.cameras.perspective);
+    }//
+
+    // console.log(THREE.OrbitControls)
+    const controls = new OrbitControls(this.cameras.perspective);
+    controls.addEventListener('change', this.render.bind(this));
+
+    this.renderer.setSize(width, height);
+    document.body.appendChild(this.renderer.domElement);
+    setTimeout(this.render.bind(this), 100)
+  })
+
+  // PerspectiveCamera
+
+  // sp.addCamera('perspective', Camera)
+
+</script>
+</body>
+</html>

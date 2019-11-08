@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <script src="../js/three.js"></script>
+</head>
+<body>
+<script type="module">
+  import '../js/loaders/OBJLoader.js';
+  import '../js/loaders/MTLLoader.js';
+  import { RectAreaLightUniformsLib } from '../jsm/lights/RectAreaLightUniformsLib.js';
+  import { PointerLockControls } from '../jsm/controls/PointerLockControls.js';
+  import { OrbitControls } from '../jsm/controls/OrbitControls.js';
+  import { TransformControls } from '../jsm/controls/TransformControls.js';
+  import addShape from './utils/addShape.js'
+  import createBox from './utils/createBox.js'
+  import roundedRect from './utils/roundedRect.js'
+  import Spectacle from './utils/spectacle.js'
+
+  var control, orbit;
+
+  const sp = new Spectacle({
+    width: window.innerWidth,
+    height: window.innerHeight
+  })
+
+  // 初始化 桌面材质
+  sp.load(function (scene) {
+    scene.add( new THREE.GridHelper( 1000, 10 ) );
+  })
+
+  // 初始化 桌面材质
+  sp.load(function (scene) {
+    const loader = new THREE.TextureLoader();
+    const texture = loader.load( "../textures/tree.jpg" );
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set( 0.01, 0.01 );
+    texture.rotation = 90
+    this.texture = texture
+  })
+
+  // 初始化 相机
+  sp.create(function (scene) {
+    const perspective = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
+    perspective.position.set( 0, 150, 500 );
+    scene.add( perspective );
+    this.cameras.perspective = perspective
+    console.log('light2222', this);
+  })
+
+  // 初始化灯光
+  sp.create(function (scene) {
+    const point = new THREE.PointLight( 0xffffff, 0.8 );
+    this.cameras.perspective.add( point );
+    const direction = new THREE.DirectionalLight(0xffffff);
+    direction.position.set(0, 1, 1).normalize();
+    scene.add(direction);
+    this.lights.point = point
+    this.lights.direction = direction
+    console.log('light2222', this);
+  })
+
+  // 初始化地面
+  sp.create(function (scene) {
+    var plane = new THREE.Mesh( new THREE.PlaneBufferGeometry(10000, 10000), new THREE.MeshBasicMaterial( { side: THREE.DoubleSide, color: '#b8b8b8' } ) );
+    plane.rotation.x = - Math.PI / 2;
+    plane.position.y = -308;
+    scene.add(plane);
+  })
+
+  // 初始化 物品
+  sp.create(function (scene) {
+    const { width, height } = this.screen
+
+    /**
+     * 重新创建一个立方体
+     */
+    var geometry = new THREE.BoxBufferGeometry( 200, 200, 200 );
+    var material = new THREE.MeshLambertMaterial( { color: '#ffa', transparent: true } );
+    var mesh = new THREE.Mesh( geometry, material );
+
+    /**
+     * 两个都需要控制相机与渲染
+     * @type {OrbitControls}
+     */
+    const orbit = new OrbitControls(this.cameras.perspective, this.renderer.domElement);
+    control = new TransformControls( this.cameras.perspective, this.renderer.domElement );
+
+    this.render = function () {
+      console.log('light2222', this);
+      this.renderer.render(scene, this.cameras.perspective);
+    }//
+
+    orbit.update();
+
+    control.attach( mesh );
+
+    scene.add( mesh );
+    scene.add( control );
+
+    control.addEventListener('change', this.render.bind(this));
+    orbit.addEventListener('change', this.render.bind(this));
+
+    control.addEventListener( 'dragging-changed', function ( event ) {
+
+      orbit.enabled = ! event.value;
+
+    } );
+
+    // console.log(THREE.OrbitControls)
+
+    this.renderer.setSize(width, height);
+    document.body.appendChild(this.renderer.domElement);
+    setTimeout(this.render.bind(this), 100)
+  })
+
+  // PerspectiveCamera
+
+  // sp.addCamera('perspective', Camera)
+
+  window.addEventListener( 'keydown', function ( event ) {
+
+    switch ( event.keyCode ) {
+
+      case 81: // Q
+        control.setSpace( control.space === "local" ? "world" : "local" );
+        break;
+
+      case 17: // Ctrl
+        control.setTranslationSnap( 100 );
+        control.setRotationSnap( THREE.Math.degToRad( 15 ) );
+        break;
+
+      case 87: // W
+        control.setMode( "translate" );
+        break;
+
+      case 69: // E
+        control.setMode( "rotate" );
+        break;
+
+      case 82: // R
+        control.setMode( "scale" );
+        break;
+
+      case 187:
+      case 107: // +, =, num+
+        control.setSize( control.size + 0.1 );
+        break;
+
+      case 189:
+      case 109: // -, _, num-
+        control.setSize( Math.max( control.size - 0.1, 0.1 ) );
+        break;
+
+      case 88: // X
+        control.showX = ! control.showX;
+        break;
+
+      case 89: // Y
+        control.showY = ! control.showY;
+        break;
+
+      case 90: // Z
+        control.showZ = ! control.showZ;
+        break;
+
+      case 32: // Spacebar
+        control.enabled = ! control.enabled;
+        break;
+
+    }
+
+  } );
+
+  window.addEventListener( 'keyup', function ( event ) {
+
+    switch ( event.keyCode ) {
+
+      case 17: // Ctrl
+        control.setTranslationSnap( null );
+        control.setRotationSnap( null );
+        break;
+
+    }
+
+  } );
+</script>
+</body>
+</html>
