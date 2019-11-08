@@ -42,7 +42,7 @@
 
   // 初始化 相机
   sp.create(function (scene) {
-    const perspective = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
+    const perspective = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 1e10 );
     perspective.position.set( 0, 150, 500 );
     scene.add( perspective );
     this.cameras.perspective = perspective
@@ -68,11 +68,6 @@
     plane.position.y = -308;
     scene.add(plane);
   })
-
-
-
-
-
 
   function createController(targetMesh, camera, dom, render) {
     const orbit = new OrbitControls( camera, dom );
@@ -117,10 +112,6 @@
     this.render = function () {
 
       sp.theta += 0.1;
-      perspective.position.x = sp.radius * Math.sin(THREE.Math.degToRad(sp.theta));
-      perspective.position.y = sp.radius * Math.sin(THREE.Math.degToRad(sp.theta));
-      perspective.position.z = sp.radius * Math.cos(THREE.Math.degToRad(sp.theta));
-      perspective.lookAt(scene.position);
 
       perspective.updateMatrixWorld();
 
