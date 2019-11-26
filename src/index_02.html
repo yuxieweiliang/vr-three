@@ -17,6 +17,7 @@
   import roundedRect from './utils/roundedRect.js'
   import Spectacle from './utils/spectacle.js'
 
+  let controls;
   const sp = new Spectacle({
     width: window.innerWidth,
     height: window.innerHeight
@@ -38,7 +39,7 @@
     perspective.position.set( 0, 150, 500 );
     scene.add( perspective );
     this.cameras.perspective = perspective
-    controls = new PointerLockControls( camera );
+    controls = new PointerLockControls( perspective );
     controls.lock();
     console.log('light2222', this);
   })

@@ -25,22 +25,13 @@
     height: window.innerHeight
   })
 
-  // 初始化 桌面材质
+  // 网格
   sp.load(function (scene) {
     scene.add( new THREE.GridHelper( 1000, 10 ) );
   })
 
-  // 初始化 桌面材质
-  sp.load(function (scene) {
-    const loader = new THREE.TextureLoader();
-    const texture = loader.load( "../textures/tree.jpg" );
-    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set( 0.01, 0.01 );
-    texture.rotation = 90
-    this.texture = texture
-  })
 
-  // 初始化 相机
+  // 相机
   sp.create(function (scene) {
     const perspective = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 1e10 );
     perspective.position.set( 0, 150, 500 );
@@ -49,7 +40,7 @@
     console.log('light2222', this);
   })
 
-  // 初始化灯光
+  // 点光 && 平行光
   sp.create(function (scene) {
     const point = new THREE.PointLight( 0xffffff, 0.8 );
     this.cameras.perspective.add( point );
@@ -61,7 +52,7 @@
     console.log('light2222', this);
   })
 
-  // 初始化地面
+  // 地面
   sp.create(function (scene) {
     var plane = new THREE.Mesh( new THREE.PlaneBufferGeometry(10000, 10000), new THREE.MeshBasicMaterial( { side: THREE.DoubleSide, color: '#b8b8b8' } ) );
     plane.rotation.x = - Math.PI / 2;
@@ -83,7 +74,13 @@
     control.addEventListener('change', render);
     orbit.addEventListener('change', render);
 
-    return { control, orbit }
+    control.addEventListener( 'dragging-changed', function ( event ) {
+
+      orbit.enabled = ! event.value;
+
+    } );
+
+    return control
   }
 
   sp.create(function (scene) {
@@ -107,10 +104,12 @@
     var mesh = new THREE.Mesh( geometry, material );
 
 
+    // 控制手柄
     sp.raycaster = new THREE.Raycaster();
     sp.radius = 100
-    this.render = function () {
 
+
+    this.render = function () {
       sp.theta += 0.1;
 
       camera.updateMatrixWorld();
@@ -135,16 +134,8 @@
           INTERSICTED = intersects[ 0 ].object;
 
           const ctrl = createController(INTERSICTED, camera, renderer.domElement, this.render)
-          control = ctrl.control
-          orbit = ctrl.orbit
+          scene.add( ctrl );
 
-          scene.add( control );
-
-          control.addEventListener( 'dragging-changed', function ( event ) {
-
-            orbit.enabled = ! event.value;
-
-          } );
           if(INTERSICTED.material.emissive) {
             INTERSICTED.currentHex = INTERSICTED.material.emissive.getHex();
             INTERSICTED.material.emissive.setHex(0xff0000);
@@ -166,18 +157,10 @@
     console.log('mesh', mesh)
 
 
-    const ctrl = createController(mesh, camera, renderer.domElement, this.render)
-    control = ctrl.control
-    orbit = ctrl.orbit
+    control = createController(mesh, camera, renderer.domElement, this.render)
 
     scene.add( mesh );
     scene.add( control );
-
-    control.addEventListener( 'dragging-changed', function ( event ) {
-
-      orbit.enabled = ! event.value;
-
-    } );
 
     // console.log(THREE.OrbitControls)
 
